@@ -38,33 +38,33 @@ export const useLocalVideos = () => {
           return;
         }
         
-        // Request permissions if on a mobile device
-        const permissions = await Media.requestPermissions({
-          permissions: ['read'],
-        });
-        
-        if (!permissions.granted) {
-          throw new Error('Storage permission not granted');
-        }
-        
-        // Get all videos from the device
-        const result = await Media.getMedias({
-          options: {
+        // The Media API has different methods based on the version
+        // Let's try to use the correct API based on what's available
+        try {
+          // Get all videos from the device
+          const result = await Media.getMedias({
             types: ['videos'],
             limit: 100,
-          },
-        });
-        
-        // Map the videos to our format
-        const formattedVideos: VideoFile[] = result.files.map((video: any, index: number) => ({
-          id: video.id || `video-${index}`,
-          name: video.name || `Video ${index}`,
-          path: video.path,
-          duration: video.duration,
-          size: video.size,
-        }));
-        
-        setVideos(formattedVideos);
+          });
+          
+          if (!result || !result.files) {
+            throw new Error('Failed to get videos');
+          }
+          
+          // Map the videos to our format
+          const formattedVideos: VideoFile[] = result.files.map((video: any, index: number) => ({
+            id: video.id || `video-${index}`,
+            name: video.name || `Video ${index}`,
+            path: video.path,
+            duration: video.duration,
+            size: video.size,
+          }));
+          
+          setVideos(formattedVideos);
+        } catch (apiError) {
+          console.error('Specific API error:', apiError);
+          throw apiError;
+        }
       } catch (err) {
         console.error('Error fetching videos:', err);
         setError(err instanceof Error ? err.message : 'Failed to load videos');
