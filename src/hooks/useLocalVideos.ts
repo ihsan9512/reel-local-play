@@ -43,16 +43,16 @@ export const useLocalVideos = () => {
         try {
           // Get all videos from the device
           const result = await Media.getMedias({
-            types: 'videos', // Changed from ['videos'] to 'videos' to match the expected type
-            limit: 100,
+            types: 'videos', // Using 'videos' string instead of array
+            // Removed 'limit' property as it doesn't exist in MediaFetchOptions
           });
           
           if (!result) {
             throw new Error('Failed to get videos');
           }
           
-          // Map the videos to our format
-          const formattedVideos: VideoFile[] = result.media?.map((video: any, index: number) => ({
+          // Map the videos to our format - using 'medias' instead of 'media'
+          const formattedVideos: VideoFile[] = result.medias?.map((video: any, index: number) => ({
             id: video.id || `video-${index}`,
             name: video.name || `Video ${index}`,
             path: video.path,
