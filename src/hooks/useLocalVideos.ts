@@ -39,24 +39,25 @@ export const useLocalVideos = () => {
         }
         
         // Request permissions if on a mobile device
-        const { granted } = await Media.requestPermissions({
-          permissions: ['read'],
-        });
-        
-        if (!granted) {
-          throw new Error('Storage permission not granted');
+        const permissions = await Media.checkPermissions();
+        if (permissions.read !== 'granted') {
+          const { read } = await Media.requestPermissions({
+            read: true,
+          });
+          
+          if (read !== 'granted') {
+            throw new Error('Storage permission not granted');
+          }
         }
         
         // Get all videos from the device
-        const { videos: videoFiles } = await Media.getMedias({
-          options: {
-            types: ['videos'],
-            limit: 100,  // Adjust as needed
-          },
+        const result = await Media.getMedia({
+          mediaType: 'video',
+          limit: 100,
         });
         
         // Map the videos to our format
-        const formattedVideos: VideoFile[] = videoFiles.map((video: any, index) => ({
+        const formattedVideos: VideoFile[] = result.media.map((video: any, index: number) => ({
           id: video.id || `video-${index}`,
           name: video.name || `Video ${index}`,
           path: video.path,
