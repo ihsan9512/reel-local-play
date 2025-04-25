@@ -1,9 +1,9 @@
 
 import { useState, useEffect } from 'react';
 import { Media } from '@capacitor-community/media';
-import { VideoFile } from '../types/video';
-import { isPlatform } from '@capacitor/core';
+import { Capacitor } from '@capacitor/core';
 import { Device } from '@capacitor/device';
+import { VideoFile } from '../types/video';
 
 export const useLocalVideos = () => {
   const [videos, setVideos] = useState<VideoFile[]>([]);
@@ -15,7 +15,7 @@ export const useLocalVideos = () => {
       try {
         // Check if we're running on a mobile device
         const info = await Device.getInfo();
-        if (info.platform === 'web' && !isPlatform('android')) {
+        if (info.platform === 'web' && !Capacitor.isNativePlatform()) {
           // On web, provide sample videos for testing
           setVideos([
             {

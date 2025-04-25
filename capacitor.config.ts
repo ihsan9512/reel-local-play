@@ -15,6 +15,9 @@ const config: CapacitorConfig = {
   plugins: {
     CapacitorMedia: {
       androidPermissionMode: "onDemo"
+    },
+    Media: {
+      scanMediaOnReconnect: true
     }
   }
 };
