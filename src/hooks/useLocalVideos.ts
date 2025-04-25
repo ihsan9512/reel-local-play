@@ -43,22 +43,22 @@ export const useLocalVideos = () => {
         try {
           // Get all videos from the device
           const result = await Media.getMedias({
-            types: ['videos'],
+            types: 'videos', // Changed from ['videos'] to 'videos' to match the expected type
             limit: 100,
           });
           
-          if (!result || !result.files) {
+          if (!result) {
             throw new Error('Failed to get videos');
           }
           
           // Map the videos to our format
-          const formattedVideos: VideoFile[] = result.files.map((video: any, index: number) => ({
+          const formattedVideos: VideoFile[] = result.media?.map((video: any, index: number) => ({
             id: video.id || `video-${index}`,
             name: video.name || `Video ${index}`,
             path: video.path,
             duration: video.duration,
             size: video.size,
-          }));
+          })) || [];
           
           setVideos(formattedVideos);
         } catch (apiError) {
