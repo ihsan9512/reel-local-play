@@ -219,7 +219,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             <p className="text-white/80 text-sm truncate">{formatTime(currentTime)} / {formatTime(duration)}</p>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-4">
             <button 
               onClick={handleShare}
               className="bg-black/40 p-2 rounded-full text-white hover:bg-black/60 transition-colors"
@@ -238,7 +238,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
               </button>
               
               {showVolumeControl && (
-                <div className="absolute bottom-12 right-0 bg-black/70 p-3 rounded-lg w-32 h-10 flex items-center">
+                <div className="absolute top-0 -left-36 bg-black/70 p-3 rounded-lg w-32 h-10 flex items-center">
                   <Slider
                     value={[volume]}
                     min={0}
