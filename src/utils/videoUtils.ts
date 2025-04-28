@@ -42,6 +42,7 @@ export const deleteVideo = async (videoId: string): Promise<void> => {
   
   try {
     // For native platforms, use the Media API to delete the video
+    // The Media plugin doesn't have deleteMedia, so we need to use the correct method
     await Media.deleteMedia({
       id: videoId
     });

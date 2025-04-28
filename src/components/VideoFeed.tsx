@@ -53,7 +53,6 @@ const VideoFeed: React.FC<VideoFeedProps> = ({ videos: initialVideos, onDeleteVi
       } else {
         toast("Failed to delete video", {
           description: "Please try again",
-          variant: "destructive",
         });
       }
     }

@@ -35,7 +35,6 @@ export const useLocalVideos = () => {
       console.error('Error deleting video:', err);
       toast("Error deleting video", {
         description: err instanceof Error ? err.message : 'Failed to delete video',
-        variant: "destructive",
       });
       return false;
     }
