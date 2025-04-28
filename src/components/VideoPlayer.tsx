@@ -205,71 +205,64 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         onEnded={handleVideoEnded}
       />
       
-      <div className={`absolute bottom-16 left-0 right-0 h-1 bg-gray-700 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`absolute bottom-16 left-0 right-0 h-1 bg-gray-700`}>
         <div 
           className="h-full bg-primary"
           style={{ width: `${progressPercentage}%` }} 
         />
       </div>
       
-      <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent`}>
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-white text-lg font-medium truncate">{video.name}</h3>
             <p className="text-white/80 text-sm truncate">{formatTime(currentTime)} / {formatTime(duration)}</p>
           </div>
-          <div className="bg-black/40 p-2 rounded-full">
-            {isPlaying ? (
-              <Volume2 size={20} className="text-white" />
-            ) : (
-              <VolumeX size={20} className="text-white" />
-            )}
+          
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={handleShare}
+              className="bg-black/40 p-2 rounded-full text-white hover:bg-black/60 transition-colors"
+              aria-label="Share video"
+            >
+              <Share2 size={20} />
+            </button>
+            
+            <div className="relative">
+              <button 
+                onClick={toggleVolumeControl}
+                className="bg-black/40 p-2 rounded-full text-white hover:bg-black/60 transition-colors"
+                aria-label="Adjust volume"
+              >
+                {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+              </button>
+              
+              {showVolumeControl && (
+                <div className="absolute bottom-12 right-0 bg-black/70 p-3 rounded-lg w-32 h-10 flex items-center">
+                  <Slider
+                    value={[volume]}
+                    min={0}
+                    max={100}
+                    step={1}
+                    onValueChange={handleVolumeChange}
+                    className="w-full"
+                  />
+                </div>
+              )}
+            </div>
+            
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDeleteDialog(true);
+              }}
+              className="bg-black/40 p-2 rounded-full text-white hover:bg-black/60 transition-colors"
+              aria-label="Delete video"
+            >
+              <Trash2 size={20} />
+            </button>
           </div>
         </div>
-      </div>
-      
-      <div className={`absolute top-4 right-4 flex flex-col gap-4 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
-        <button 
-          onClick={handleShare}
-          className="bg-black/40 p-2 rounded-full text-white"
-          aria-label="Share video"
-        >
-          <Share2 size={20} />
-        </button>
-        
-        <div className="relative">
-          <button 
-            onClick={toggleVolumeControl}
-            className="bg-black/40 p-2 rounded-full text-white"
-            aria-label="Adjust volume"
-          >
-            {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-          </button>
-          
-          {showVolumeControl && (
-            <div className="absolute bottom-0 right-10 bg-black/70 p-3 rounded-lg w-32 h-10 flex items-center">
-              <Slider
-                value={[volume]}
-                min={0}
-                max={100}
-                step={1}
-                onValueChange={handleVolumeChange}
-                className="w-full"
-              />
-            </div>
-          )}
-        </div>
-        
-        <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowDeleteDialog(true);
-          }}
-          className="bg-black/40 p-2 rounded-full text-white"
-          aria-label="Delete video"
-        >
-          <Trash2 size={20} />
-        </button>
       </div>
       
       <div className="absolute bottom-0 left-0 right-0">
