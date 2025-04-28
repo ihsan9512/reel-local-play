@@ -7,14 +7,14 @@ import ErrorScreen from '../components/ErrorScreen';
 import { Button } from '@/components/ui/button';
 
 const Index: React.FC = () => {
-  const { videos, loading, error } = useLocalVideos();
+  const { videos, loading, error, deleteVideo, refreshVideos } = useLocalVideos();
 
   if (loading) {
     return <LoadingScreen />;
   }
 
   if (error) {
-    return <ErrorScreen message={error} onRetry={() => window.location.reload()} />;
+    return <ErrorScreen message={error} onRetry={refreshVideos} />;
   }
 
   if (videos.length === 0) {
@@ -24,7 +24,7 @@ const Index: React.FC = () => {
         <p className="text-gray-300 mb-6 text-center">
           No video files were found on your device. Please make sure you have videos on your device and have granted the necessary permissions.
         </p>
-        <Button onClick={() => window.location.reload()}>
+        <Button onClick={refreshVideos}>
           Refresh
         </Button>
       </div>
@@ -33,7 +33,7 @@ const Index: React.FC = () => {
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-black">
-      <VideoFeed videos={videos} />
+      <VideoFeed videos={videos} onDeleteVideo={deleteVideo} />
     </div>
   );
 };

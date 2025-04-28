@@ -1,37 +1,55 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { VideoFile } from '../types/video';
-import { VolumeX, Volume2 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Share2, Trash2, Volume, Volume2, VolumeX } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { toast } from '@/components/ui/sonner';
+import { Progress } from '@/components/ui/progress';
 
 interface VideoPlayerProps {
   video: VideoFile;
   isActive: boolean;
   onVideoEnd?: () => void;
+  onDeleteVideo?: (id: string) => void;
+  currentIndex: number;
+  totalVideos: number;
 }
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, onVideoEnd }) => {
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ 
+  video, 
+  isActive, 
+  onVideoEnd, 
+  onDeleteVideo,
+  currentIndex,
+  totalVideos
+}) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isMuted, setIsMuted] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  const [volume, setVolume] = useState(50);
+  const [showVolumeControl, setShowVolumeControl] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   
-  // Handle play/pause based on visibility
+  // Handle play/pause based on visibility and user interaction
   useEffect(() => {
     const videoElement = videoRef.current;
     if (!videoElement) return;
     
     if (isActive) {
       try {
-        videoElement.currentTime = 0;
-        const playPromise = videoElement.play();
-        
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => setIsPlaying(true))
-            .catch(error => {
+        if (isPlaying) {
+          const playPromise = videoElement.play();
+          
+          if (playPromise !== undefined) {
+            playPromise.catch(error => {
               console.error('Error playing video:', error);
               setIsPlaying(false);
             });
+          }
         }
       } catch (err) {
         console.error('Error in video playback:', err);
@@ -47,7 +65,38 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, onVideoEnd }
       videoElement.pause();
       setIsPlaying(false);
     }
+  }, [isActive, isPlaying]);
+
+  // Start playing when video becomes active
+  useEffect(() => {
+    if (isActive && !isPlaying && videoRef.current) {
+      videoRef.current.currentTime = 0;
+      setIsPlaying(true);
+    }
   }, [isActive]);
+  
+  // Listen for time updates to track progress
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    
+    const handleTimeUpdate = () => {
+      setCurrentTime(video.currentTime);
+      setDuration(video.duration || 0);
+    };
+    
+    const handleLoadedMetadata = () => {
+      setDuration(video.duration || 0);
+    };
+    
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    
+    return () => {
+      video.removeEventListener('timeupdate', handleTimeUpdate);
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+    };
+  }, [videoRef]);
   
   // Handle video ended event
   const handleVideoEnded = () => {
@@ -55,10 +104,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, onVideoEnd }
       onVideoEnd();
     }
     
-    // Loop the video
+    // Reset video
     if (videoRef.current) {
       videoRef.current.currentTime = 0;
-      videoRef.current.play().catch(e => console.error('Error replaying video:', e));
+      setIsPlaying(false);
     }
   };
   
@@ -68,6 +117,30 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, onVideoEnd }
       videoRef.current.muted = !isMuted;
       setIsMuted(!isMuted);
     }
+  };
+  
+  // Toggle play/pause on tap
+  const togglePlayPause = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play().catch(e => console.error('Error playing video:', e));
+      }
+      setIsPlaying(!isPlaying);
+    }
+    
+    // Show controls when user interacts
+    setShowControls(true);
+    
+    // Hide controls after a few seconds
+    const timer = setTimeout(() => {
+      setShowControls(false);
+    }, 3000);
+    
+    return () => clearTimeout(timer);
   };
   
   // Show controls on tap
@@ -82,6 +155,62 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, onVideoEnd }
     return () => clearTimeout(timer);
   };
   
+  // Handle volume change
+  const handleVolumeChange = (value: number[]) => {
+    const newVolume = value[0];
+    setVolume(newVolume);
+    
+    if (videoRef.current) {
+      videoRef.current.volume = newVolume / 100;
+      
+      if (newVolume === 0) {
+        videoRef.current.muted = true;
+        setIsMuted(true);
+      } else if (isMuted) {
+        videoRef.current.muted = false;
+        setIsMuted(false);
+      }
+    }
+  };
+  
+  // Toggle volume control
+  const toggleVolumeControl = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowVolumeControl(!showVolumeControl);
+    setShowControls(true);
+  };
+  
+  // Handle share
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: video.name,
+          text: `Check out this video: ${video.name}`,
+          url: video.path,
+        });
+      } else {
+        toast("Sharing not supported on this device", {
+          description: "Try copying the link manually",
+        });
+      }
+    } catch (err) {
+      console.error('Error sharing video:', err);
+    }
+  };
+  
+  // Format time (seconds -> MM:SS)
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
+  
+  // Calculate progress percentage
+  const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
+  
   return (
     <div className="relative w-full h-full" onClick={handleTap}>
       <video
@@ -90,27 +219,102 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, onVideoEnd }
         className="w-full h-full object-contain bg-black"
         playsInline
         muted={isMuted}
-        loop
+        onClick={togglePlayPause}
         onEnded={handleVideoEnded}
       />
+      
+      {/* Video progress bar */}
+      <div className={`absolute bottom-16 left-0 right-0 h-1 bg-gray-700 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+        <div 
+          className="h-full bg-primary"
+          style={{ width: `${progressPercentage}%` }} 
+        />
+      </div>
       
       {/* Video info overlay */}
       <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
         <h3 className="text-white text-lg font-medium truncate">{video.name}</h3>
+        <p className="text-white/80 text-sm truncate">{formatTime(currentTime)} / {formatTime(duration)}</p>
       </div>
       
       {/* Controls overlay */}
-      <div className={`absolute top-4 right-4 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`absolute top-4 right-4 flex flex-col gap-4 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+        {/* Share button */}
+        <button 
+          onClick={handleShare}
+          className="bg-black/40 p-2 rounded-full text-white"
+          aria-label="Share video"
+        >
+          <Share2 size={20} />
+        </button>
+        
+        {/* Volume button */}
+        <div className="relative">
+          <button 
+            onClick={toggleVolumeControl}
+            className="bg-black/40 p-2 rounded-full text-white"
+            aria-label="Adjust volume"
+          >
+            {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+          </button>
+          
+          {showVolumeControl && (
+            <div className="absolute bottom-0 right-10 bg-black/70 p-3 rounded-lg w-32 h-10 flex items-center">
+              <Slider
+                value={[volume]}
+                min={0}
+                max={100}
+                step={1}
+                onValueChange={handleVolumeChange}
+                className="w-full"
+              />
+            </div>
+          )}
+        </div>
+        
+        {/* Delete button */}
         <button 
           onClick={(e) => {
             e.stopPropagation();
-            toggleMute();
+            setShowDeleteDialog(true);
           }}
           className="bg-black/40 p-2 rounded-full text-white"
+          aria-label="Delete video"
         >
-          {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+          <Trash2 size={20} />
         </button>
       </div>
+      
+      {/* Overall progress indicator at bottom of screen */}
+      <div className="absolute bottom-0 left-0 right-0">
+        <Progress value={(currentIndex + 1) / totalVideos * 100} className="h-1" />
+      </div>
+      
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Video</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this file?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                if (onDeleteVideo) {
+                  onDeleteVideo(video.id);
+                }
+                setShowDeleteDialog(false);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

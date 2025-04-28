@@ -29,3 +29,25 @@ export const getVideos = async (): Promise<VideoFile[]> => {
   }
   return fetchDeviceVideos();
 };
+
+export const deleteVideo = async (videoId: string): Promise<void> => {
+  const isNative = await isNativePlatform();
+  
+  if (!isNative) {
+    // In web mode, we're using sample videos which can't actually be deleted,
+    // so we'll just simulate success
+    console.log('Simulating deletion of video:', videoId);
+    return Promise.resolve();
+  }
+  
+  try {
+    // For native platforms, use the Media API to delete the video
+    await Media.deleteMedia({
+      id: videoId
+    });
+    return Promise.resolve();
+  } catch (error) {
+    console.error('Error deleting video:', error);
+    throw new Error('Failed to delete video');
+  }
+};
