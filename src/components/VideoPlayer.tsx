@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import { VideoFile } from '../types/video';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -34,7 +33,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   
-  // Handle play/pause based on visibility and user interaction
   useEffect(() => {
     const videoElement = videoRef.current;
     if (!videoElement) return;
@@ -55,7 +53,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         console.error('Error in video playback:', err);
       }
       
-      // Hide controls after a few seconds
       const timer = setTimeout(() => {
         setShowControls(false);
       }, 3000);
@@ -67,7 +64,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   }, [isActive, isPlaying]);
 
-  // Start playing when video becomes active
   useEffect(() => {
     if (isActive && !isPlaying && videoRef.current) {
       videoRef.current.currentTime = 0;
@@ -75,7 +71,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   }, [isActive]);
   
-  // Listen for time updates to track progress
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -98,20 +93,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     };
   }, [videoRef]);
   
-  // Handle video ended event
   const handleVideoEnded = () => {
     if (onVideoEnd) {
       onVideoEnd();
     }
     
-    // Reset video
     if (videoRef.current) {
       videoRef.current.currentTime = 0;
       setIsPlaying(false);
     }
   };
   
-  // Toggle mute
   const toggleMute = () => {
     if (videoRef.current) {
       videoRef.current.muted = !isMuted;
@@ -119,7 +111,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   };
   
-  // Toggle play/pause on tap
   const togglePlayPause = (e: React.MouseEvent) => {
     e.stopPropagation();
     
@@ -132,10 +123,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       setIsPlaying(!isPlaying);
     }
     
-    // Show controls when user interacts
     setShowControls(true);
     
-    // Hide controls after a few seconds
     const timer = setTimeout(() => {
       setShowControls(false);
     }, 3000);
@@ -143,11 +132,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     return () => clearTimeout(timer);
   };
   
-  // Show controls on tap
   const handleTap = () => {
     setShowControls(true);
     
-    // Hide controls after a few seconds
     const timer = setTimeout(() => {
       setShowControls(false);
     }, 3000);
@@ -155,7 +142,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     return () => clearTimeout(timer);
   };
   
-  // Handle volume change
   const handleVolumeChange = (value: number[]) => {
     const newVolume = value[0];
     setVolume(newVolume);
@@ -173,14 +159,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   };
   
-  // Toggle volume control
   const toggleVolumeControl = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowVolumeControl(!showVolumeControl);
     setShowControls(true);
   };
   
-  // Handle share
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
@@ -201,14 +185,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   };
   
-  // Format time (seconds -> MM:SS)
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
   
-  // Calculate progress percentage
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
   
   return (
@@ -223,7 +205,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         onEnded={handleVideoEnded}
       />
       
-      {/* Video progress bar */}
       <div className={`absolute bottom-16 left-0 right-0 h-1 bg-gray-700 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
         <div 
           className="h-full bg-primary"
@@ -231,15 +212,23 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         />
       </div>
       
-      {/* Video info overlay */}
       <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
-        <h3 className="text-white text-lg font-medium truncate">{video.name}</h3>
-        <p className="text-white/80 text-sm truncate">{formatTime(currentTime)} / {formatTime(duration)}</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-white text-lg font-medium truncate">{video.name}</h3>
+            <p className="text-white/80 text-sm truncate">{formatTime(currentTime)} / {formatTime(duration)}</p>
+          </div>
+          <div className="bg-black/40 p-2 rounded-full">
+            {isPlaying ? (
+              <Volume2 size={20} className="text-white" />
+            ) : (
+              <VolumeX size={20} className="text-white" />
+            )}
+          </div>
+        </div>
       </div>
       
-      {/* Controls overlay */}
       <div className={`absolute top-4 right-4 flex flex-col gap-4 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
-        {/* Share button */}
         <button 
           onClick={handleShare}
           className="bg-black/40 p-2 rounded-full text-white"
@@ -248,7 +237,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           <Share2 size={20} />
         </button>
         
-        {/* Volume button */}
         <div className="relative">
           <button 
             onClick={toggleVolumeControl}
@@ -272,7 +260,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           )}
         </div>
         
-        {/* Delete button */}
         <button 
           onClick={(e) => {
             e.stopPropagation();
@@ -285,12 +272,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         </button>
       </div>
       
-      {/* Overall progress indicator at bottom of screen */}
       <div className="absolute bottom-0 left-0 right-0">
         <Progress value={(currentIndex + 1) / totalVideos * 100} className="h-1" />
       </div>
       
-      {/* Delete confirmation dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent onClick={(e) => e.stopPropagation()}>
           <AlertDialogHeader>
