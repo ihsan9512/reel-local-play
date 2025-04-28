@@ -4,7 +4,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Share2, Trash2, Volume, Volume2, VolumeX } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { toast } from '@/components/ui/sonner';
-import { Progress } from '@/components/ui/progress';
 
 interface VideoPlayerProps {
   video: VideoFile;
@@ -191,6 +190,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
   
+  const handleProgressChange = (value: number[]) => {
+    if (videoRef.current && duration) {
+      const newTime = (value[0] / 100) * duration;
+      videoRef.current.currentTime = newTime;
+      setCurrentTime(newTime);
+    }
+  };
+
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
   
   return (
@@ -214,9 +221,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       
       <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent`}>
         <div className="flex items-center justify-between">
-          <div>
+          <div className="flex-1 mr-4">
             <h3 className="text-white text-lg font-medium truncate">{video.name}</h3>
-            <p className="text-white/80 text-sm truncate">{formatTime(currentTime)} / {formatTime(duration)}</p>
+            <Slider
+              value={[progressPercentage]}
+              min={0}
+              max={100}
+              step={0.1}
+              onValueChange={handleProgressChange}
+              className="w-full"
+            />
           </div>
           
           <div className="flex flex-col gap-4">
