@@ -4,6 +4,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Share2, Trash2, Volume, Volume2, VolumeX } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { toast } from '@/components/ui/sonner';
+import { Progress } from '@/components/ui/progress';
 
 interface VideoPlayerProps {
   video: VideoFile;
@@ -212,70 +213,60 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         onEnded={handleVideoEnded}
       />
       
-      <div className={`absolute bottom-16 left-0 right-0 h-1 bg-gray-700`}>
-        <div 
-          className="h-full bg-primary"
-          style={{ width: `${progressPercentage}%` }} 
+      <div className={`absolute bottom-0 left-0 right-0 w-full`}>
+        <Slider
+          value={[progressPercentage]}
+          min={0}
+          max={100}
+          step={0.1}
+          onValueChange={handleProgressChange}
+          className="w-full h-2"
         />
       </div>
       
-      <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent`}>
-        <div className="flex items-center justify-between">
-          <div className="flex-1 mr-4">
-            <h3 className="text-white text-lg font-medium truncate">{video.name}</h3>
-            <Slider
-              value={[progressPercentage]}
-              min={0}
-              max={100}
-              step={0.1}
-              onValueChange={handleProgressChange}
-              className="w-full"
-            />
+      <div className={`absolute bottom-0 right-0 p-4`}>
+        <div className="flex flex-col gap-4">
+          <button 
+            onClick={handleShare}
+            className="bg-black/40 p-2 rounded-full text-white hover:bg-black/60 transition-colors"
+            aria-label="Share video"
+          >
+            <Share2 size={20} />
+          </button>
+          
+          <div className="relative">
+            <button 
+              onClick={toggleVolumeControl}
+              className="bg-black/40 p-2 rounded-full text-white hover:bg-black/60 transition-colors"
+              aria-label="Adjust volume"
+            >
+              {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+            </button>
+            
+            {showVolumeControl && (
+              <div className="absolute -left-36 bottom-0 bg-black/70 p-3 rounded-lg w-32 h-10 flex items-center">
+                <Slider
+                  value={[volume]}
+                  min={0}
+                  max={100}
+                  step={1}
+                  onValueChange={handleVolumeChange}
+                  className="w-full"
+                />
+              </div>
+            )}
           </div>
           
-          <div className="flex flex-col gap-4">
-            <button 
-              onClick={handleShare}
-              className="bg-black/40 p-2 rounded-full text-white hover:bg-black/60 transition-colors"
-              aria-label="Share video"
-            >
-              <Share2 size={20} />
-            </button>
-            
-            <div className="relative">
-              <button 
-                onClick={toggleVolumeControl}
-                className="bg-black/40 p-2 rounded-full text-white hover:bg-black/60 transition-colors"
-                aria-label="Adjust volume"
-              >
-                {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-              </button>
-              
-              {showVolumeControl && (
-                <div className="absolute top-0 -left-36 bg-black/70 p-3 rounded-lg w-32 h-10 flex items-center">
-                  <Slider
-                    value={[volume]}
-                    min={0}
-                    max={100}
-                    step={1}
-                    onValueChange={handleVolumeChange}
-                    className="w-full"
-                  />
-                </div>
-              )}
-            </div>
-            
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowDeleteDialog(true);
-              }}
-              className="bg-black/40 p-2 rounded-full text-white hover:bg-black/60 transition-colors"
-              aria-label="Delete video"
-            >
-              <Trash2 size={20} />
-            </button>
-          </div>
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowDeleteDialog(true);
+            }}
+            className="bg-black/40 p-2 rounded-full text-white hover:bg-black/60 transition-colors"
+            aria-label="Delete video"
+          >
+            <Trash2 size={20} />
+          </button>
         </div>
       </div>
       
