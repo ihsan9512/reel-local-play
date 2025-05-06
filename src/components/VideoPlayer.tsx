@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect } from 'react';
 import { VideoFile } from '../types/video';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -213,7 +214,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         onEnded={handleVideoEnded}
       />
       
-      <div className={`absolute bottom-0 left-0 right-0 w-full`}>
+      {/* Single progress bar at the bottom for seeking */}
+      <div className={`absolute bottom-0 left-0 right-0 w-full ${showControls ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}>
         <Slider
           value={[progressPercentage]}
           min={0}
@@ -224,7 +226,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         />
       </div>
       
-      <div className={`absolute bottom-0 right-0 p-4`}>
+      <div className={`absolute bottom-0 right-0 p-4 ${showControls ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}>
         <div className="flex flex-col gap-4">
           <button 
             onClick={handleShare}
@@ -270,6 +272,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         </div>
       </div>
       
+      {/* Progress indicator for current video in the feed */}
       <div className="absolute bottom-0 left-0 right-0">
         <Progress value={(currentIndex + 1) / totalVideos * 100} className="h-1" />
       </div>
