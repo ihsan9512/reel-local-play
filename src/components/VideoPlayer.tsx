@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { VideoFile } from '../types/video';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Fullscreen, Share2, Trash2, Volume, Volume2, VolumeX } from 'lucide-react';
+import { Share2, Trash2, Volume, Volume2, VolumeX } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { toast } from '@/components/ui/sonner';
 import { Progress } from '@/components/ui/progress';
@@ -24,7 +24,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   totalVideos
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const [isMuted, setIsMuted] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showControls, setShowControls] = useState(true);
@@ -33,7 +32,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   
   useEffect(() => {
     const videoElement = videoRef.current;
@@ -187,27 +185,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   };
   
-  const toggleFullscreen = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    
-    if (!containerRef.current) return;
-    
-    try {
-      if (!document.fullscreenElement) {
-        await containerRef.current.requestFullscreen();
-        setIsFullscreen(true);
-      } else {
-        await document.exitFullscreen();
-        setIsFullscreen(false);
-      }
-    } catch (err) {
-      console.error('Error toggling fullscreen:', err);
-      toast("Fullscreen failed", {
-        description: "Fullscreen mode is not supported on this device or browser",
-      });
-    }
-  };
-  
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
@@ -225,7 +202,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
   
   return (
-    <div ref={containerRef} className="relative w-full h-full" onClick={handleTap}>
+    <div className="relative w-full h-full" onClick={handleTap}>
       <video
         ref={videoRef}
         src={video.path}
@@ -250,14 +227,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       
       <div className={`absolute bottom-0 right-0 p-4 ${showControls ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}>
         <div className="flex flex-col gap-4">
-          <button 
-            onClick={toggleFullscreen}
-            className="bg-black/40 p-2 rounded-full text-white hover:bg-black/60 transition-colors"
-            aria-label="Toggle fullscreen"
-          >
-            <Fullscreen size={20} />
-          </button>
-
           <button 
             onClick={handleShare}
             className="bg-black/40 p-2 rounded-full text-white hover:bg-black/60 transition-colors"
